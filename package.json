@@ -1,0 +1,21 @@
+{
+  "name": "dw2ide-runtime",
+  "description": "Distant Worlds 2 IDE Runtime Binding Layers",
+  "version": "1.0.0",
+  "main": "./index.js",
+  "cmake-js": {
+    "runtime": "electron",
+    "runtimeVersion": "27.1.3",
+    "arch": "x64"
+  },
+  "scripts": {
+    "install": "cmake-js compile"
+  },
+  "engines": {
+    "node": ">=20.7"
+  },
+  "dependencies": {
+    "bindings": "^1.5.0",
+    "cmake-js": "^7.2.1"
+  }
+}
