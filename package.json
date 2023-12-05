@@ -1,8 +1,11 @@
 {
   "name": "dw2ide-runtime",
   "description": "Distant Worlds 2 IDE Runtime Binding Layers",
+  "author": "Slitherine Software UK Ltd.",
+  "license": "MIT",
   "version": "1.0.0",
   "main": "./index.js",
+  "type": "module",
   "cmake-js": {
     "runtime": "electron",
     "runtimeVersion": "27.1.3",

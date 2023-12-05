@@ -1,18 +1,16 @@
 # dw2ide_runtime
 
-`dw2ide_runtime` is a bridge module written mainly in C++ and JavaScript, envisioned for the [DW2IDE electron.js project](). This singular module aims to provide direct access to the .NET environment exported by a separate C# project. The project is open source and is released under the MIT License.
-
-## Description
+`dw2ide_runtime` is a bridge module written mainly in C++ and JavaScript, envisioned for the [DW2IDE electron project](). This singular module aims to provide direct access to the .NET environment exported by a separate C# project. The project is open source and is released under the MIT License.
 
 The project serves as glue for the .NET API of the C# DW2IDE project
-and the JavaScript runtime of the DW2IDE electron.js project.
+and the JavaScript runtime of the DW2IDE electron project.
 
 The project is written in C++ with a little bit of JavaScript for wiring up,
-and is envisioned to be used as a dependency in the DW2IDE electron.js project.
+and is envisioned to be used as a dependency in the DW2IDE electron project.
 
 ## Installation
 
-This project isn't meant to be used as a standalone project, but rather as a dependency in the DW2IDE electron.js project. However, if you want to use this project as a standalone project, you can do so by cloning this repository and building the project using the following commands:
+This project isn't meant to be used as a standalone project, but rather as a dependency in the DW2IDE electron project. However, if you want to use this project as a standalone project, you can do so by cloning this repository and building the project using the following commands:
 
 *TODO: Add build instructions based on what we come up with for GitHub CI*
 
