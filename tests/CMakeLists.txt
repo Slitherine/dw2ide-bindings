@@ -3,15 +3,9 @@ cmake_policy(SET CMP0091 NEW)
 cmake_policy(SET CMP0042 NEW)
 cmake_policy(SET CMP0135 NEW)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(MOCHA_JS ${CMAKE_SOURCE_DIR}/node_modules/mocha/bin/mocha.js)
 
-include(InstallRequiredSystemLibraries)
-
-include(FetchContent)
-
-FetchContent_Declare(googletest URL https://github.com/google/googletest/archive/master.zip)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
-include(GoogleTest)
+set(ENV{NODE_OPTIONS} "--experimental-modules --experimental-vm-modules --experimental-specifier-resolution=node")
+add_test(NAME mocha
+        COMMAND ${NODE} ${MOCHA_JS} --recursive ${CMAKE_SOURCE_DIR}/tests
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR})
