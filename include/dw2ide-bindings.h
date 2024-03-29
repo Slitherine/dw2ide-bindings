@@ -8,6 +8,10 @@ namespace DistantWorlds::Ide {
 
 }
 
+#ifndef __DNNE_GENERATED_HEADER_DISTANTWORLDS_IDE__
+#error Failed to include DistantWorlds.IDE.Interop.h
+#endif
+
 
 namespace dw2ide {
     using namespace v8;
@@ -15,12 +19,16 @@ namespace dw2ide {
     class Dw2IdeContext {
     public:
 
-        explicit Dw2IdeContext(Isolate *isolate) {
+        explicit Dw2IdeContext(Isolate *isolate, Local<Object> & exports) {
             node::AddEnvironmentCleanupHook(isolate, Cleanup, this);
+            Exports.Reset(isolate, exports);
+            const auto &ctxSymbol = Symbol::New(isolate, String::NewFromUtf8Literal(isolate, "IsoCtxId", NewStringType::kInternalized));
+            IsolationContextIdSymbol.Reset(isolate, ctxSymbol);
         }
 
         static void Cleanup(void *data) {
             auto *module = static_cast<Dw2IdeContext *>(data);
+            module->IsolationContextIdSymbol.Reset();
             delete module;
         }
 
@@ -28,31 +36,34 @@ namespace dw2ide {
             return reinterpret_cast<Dw2IdeContext *>(info.Data().As<External>()->Value());
         }
 
-
-        Global<ObjectTemplate> ManagedHandleTemplate;
+        Global<Object> Exports;
+        Global<Symbol> IsolationContextIdSymbol;
     };
 
+    /*
     extern "C" NODE_MODULE_EXPORT void
     NODE_MODULE_INITIALIZER_X(NODE_MODULE_INITIALIZER_BASE, 118)
             (Local<Object> exports,
-             Local<Value> module,
-             Local<Context> context);
-
-    // redirect compatible versions to the same export
+                    Local<Value> module,
+                    Local<Context> context);
 
     extern "C" NODE_MODULE_EXPORT void
     NODE_MODULE_INITIALIZER_X(NODE_MODULE_INITIALIZER_BASE, 119)
             (Local<Object> exports,
-             Local<Value> module,
-             Local<Context> context) {
-        NODE_MODULE_INITIALIZER_X(NODE_MODULE_INITIALIZER_BASE, 118)(exports, module, context);
-    }
+                    Local<Value> module,
+                    Local<Context> context);
 
     extern "C" NODE_MODULE_EXPORT void
     NODE_MODULE_INITIALIZER_X(NODE_MODULE_INITIALIZER_BASE, 120)
             (Local<Object> exports,
+                    Local<Value> module,
+                    Local<Context> context);
+*/
+
+    extern "C" NODE_MODULE_EXPORT void
+    NODE_MODULE_INITIALIZER_X(NODE_MODULE_INITIALIZER_BASE, 121)
+            (Local<Object> exports,
              Local<Value> module,
-             Local<Context> context) {
-        NODE_MODULE_INITIALIZER_X(NODE_MODULE_INITIALIZER_BASE, 118)(exports, module, context);
-    }
+             Local<Context> context);
+
 }

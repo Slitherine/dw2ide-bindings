@@ -4,11 +4,11 @@
     "author": "Slitherine Software UK Ltd.",
     "license": "MIT",
     "version": "1.0.0",
-    "main": "./index.js",
+    "main": "index.mjs",
     "type": "module",
     "cmake-js": {
         "runtime": "electron",
-        "runtimeVersion": "27.1.3",
+        "runtimeVersion": "29.0.1",
         "arch": "x64"
     },
     "scripts": {
@@ -16,15 +16,15 @@
         "test": "cross-env NODE_ENV=test NODE_OPTIONS=\"NODE_OPTIONS=--experimental-modules --experimental-vm-modules --experimental-specifier-resolution=node\" mocha --recursive ./tests"
     },
     "engines": {
-        "node": ">=20.7"
+        "node": ">=20.9"
     },
     "dependencies": {
         "bindings": "^1.5.0",
-        "cmake-js": "^7.2.1"
+        "cmake-js": "^7.3.0"
     },
     "devDependencies": {
-        "chai": "^4.3.10",
+        "chai": "^5.1.0",
         "cross-env": "^7.0.3",
-        "mocha": "^10.2.0"
+        "mocha": "^10.4.0"
     }
 }

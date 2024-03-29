@@ -22,25 +22,24 @@ endif ()
 include_directories(${CMAKE_JS_INC})
 
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS LIST_DIRECTORIES false
-        "src/*.cxx"
-        "src/*.cpp"
-        "src/*.c"
-        "src/*.hpp"
-        "src/*.h"
-        "include/*.hpp"
-        "include/*.h")
+        "src/**.cxx"
+        "src/**.cpp"
+        "src/**.c"
+        "src/**.hpp"
+        "src/**.h"
+        "include/**.hpp"
+        "include/**.h")
 
 add_library(${PROJECT_NAME} SHARED ${SOURCE_FILES} ${CMAKE_JS_SRC})
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PUBLIC include PRIVATE src)
 set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "" SUFFIX ".node")
 target_link_libraries(${PROJECT_NAME} ${CMAKE_JS_LIB})
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "include/dw2ide_runtime.h")
 
 # NODE_MODULE_VERSION might need to be set manually
 set_target_properties(${PROJECT_NAME} PROPERTIES
-        NODE_MODULE_VERSION 120
+        NODE_MODULE_VERSION 121
         COMPILE_WARNING_AS_ERROR ON)
-
 
 if (MSVC AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
     # touch these files to make sure they exist
@@ -50,6 +49,7 @@ if (MSVC AND CMAKE_JS_NODELIB_DEF AND CMAKE_JS_NODELIB_TARGET)
             COMMAND ${CMAKE_AR} /def:${CMAKE_JS_NODELIB_DEF} /out:${CMAKE_JS_NODELIB_TARGET} ${CMAKE_STATIC_LINKER_FLAGS}
             COMMENT "Generating node.lib")
 endif ()
+
 
 # path to the DistantWorlds.IDE c# project
 set(DW_IDE_CS_PATH "" CACHE PATH "Path to the DistantWorlds.IDE project.")
@@ -64,34 +64,41 @@ endif ()
 if (NOT DW_IDE_CS_PATH)
     message(FATAL_ERROR "Path to the DistantWorlds.IDE project is not set.")
 endif ()
+message(STATUS "Path to the DistantWorlds.IDE: ${DW_IDE_CS_PATH}")
 
 set(DW_IDE_CS_FWTARGET "net8.0" CACHE PATH "Target framework for DistantWorlds.IDE.")
 set(DW_IDE_CS_PLATFORM "win-x64" CACHE PATH "Target platform for DistantWorlds.IDE.")
 
+set(DW_IDE_CS_CONFIG "")
 if (CMAKE_BUILD_TYPE STREQUAL "Release")
-    set(DW_IDE_CS_CONFIG "Release" CACHE PATH "Configuration for DistantWorlds.IDE.")
+    set(DW_IDE_CS_CONFIG "Release")
 else ()
-    set(DW_IDE_CS_CONFIG "Debug" CACHE PATH "Configuration for DistantWorlds.IDE.")
+    set(DW_IDE_CS_CONFIG "Debug")
 endif ()
 
-set(DW_IDE_CS_OUTDIR "${PARENT_DIR}/DistantWorlds.IDE/bin/${DW_IDE_CS_CONFIG}/${DW_IDE_CS_FWTARGET}/${DW_IDE_CS_PLATFORM}")
+set(DW_IDE_CS_BUILD NO CACHE BOOL "Build DistantWorlds.IDE C# project.")
+set(DW_IDE_CS_OUTDIR "${PARENT_DIR}/DistantWorlds.IDE/dist/${DW_IDE_CS_CONFIG}")
 
-if (NOT EXISTS "${DW_IDE_CS_OUTDIR}/DistantWorlds.IDE.Interop.dll")
-    # build DistantWorlds.IDE
-    message(STATUS "Building DistantWorlds.IDE...")
-    execute_process(COMMAND dotnet build
-            -c ${DW_IDE_CS_CONFIG} -f ${DW_IDE_CS_FWTARGET} -r ${DW_IDE_CS_PLATFORM} # configuration
-            -p:SelfContained=true # include runtime
-            -p:CopyLocalLockFileAssemblies=true # all dependencies
-            #"-p:OutDir=${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-            ${DW_IDE_CS_PATH}/DistantWorlds.IDE.csproj
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-            RESULT_VARIABLE DW_IDE_CS_BUILD_RESULT
-    )
-    if (NOT DW_IDE_CS_BUILD_RESULT EQUAL 0)
-        message(FATAL_ERROR "Failed to build DistantWorlds.IDE!")
-    else ()
-        message(STATUS "DistantWorlds.IDE build output: ${DW_IDE_CS_BUILD_OUTPUT}")
+if (DW_IDE_CS_BUILD)
+    message(STATUS "Checking if DistantWorlds.IDE needs to be built...")
+
+    if (NOT EXISTS "${DW_IDE_CS_OUTDIR}/DistantWorlds.IDE.Interop.dll")
+        # build DistantWorlds.IDE
+        message(STATUS "Building DistantWorlds.IDE...")
+        execute_process(COMMAND dotnet publish
+                -c ${DW_IDE_CS_CONFIG} -f ${DW_IDE_CS_FWTARGET} -r ${DW_IDE_CS_PLATFORM} # configuration
+                -p:SelfContained=true # include runtime
+                -p:CopyLocalLockFileAssemblies=true # all dependencies
+                "-o=${DW_IDE_CS_OUTDIR}"
+                ${DW_IDE_CS_PATH}/DistantWorlds.IDE.csproj
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                RESULT_VARIABLE DW_IDE_CS_BUILD_RESULT
+        )
+        if (NOT DW_IDE_CS_BUILD_RESULT EQUAL 0)
+            message(FATAL_ERROR "Failed to build DistantWorlds.IDE!")
+        else ()
+            message(STATUS "DistantWorlds.IDE build output: ${DW_IDE_CS_BUILD_OUTPUT}")
+        endif ()
     endif ()
 endif ()
 
@@ -104,6 +111,12 @@ set_target_properties(DistantWorlds.IDE PROPERTIES
         PUBLIC_HEADER "${DW_IDE_CS_OUTDIR}/DistantWorlds.IDE.Interop.h"
         INTERFACE_INCLUDE_DIRECTORIES "${DW_IDE_CS_OUTDIR}"
 )
+target_include_directories(${PROJECT_NAME} PRIVATE "${DW_IDE_CS_OUTDIR}")
+
+#[[if (NOT EXISTS "${DW_IDE_CS_OUTDIR}/DistantWorlds.IDE.Interop.h")
+    message(FATAL_ERROR "DistantWorlds.IDE.Interop files are missing!")
+endif ()]]
+
 # add all extra files in the output dir
 file(GLOB_RECURSE DW_IDE_CS_EXTRA_FILES CONFIGURE_DEPENDS LIST_DIRECTORIES false
         "${DW_IDE_CS_OUTDIR}/**")
@@ -112,12 +125,27 @@ list(FILTER DW_IDE_CS_EXTRA_FILES EXCLUDE REGEX ".*\.h$")
 
 
 # copy all extra files to the output dir
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+#[[add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
         ${DW_IDE_CS_EXTRA_FILES}
         $<TARGET_FILE_DIR:${PROJECT_NAME}>
         COMMENT "Copying additional dependencies from DistantWorlds.IDE..."
-)
+)]]
+# for debugging, add all files as individual copy commands
+foreach (file ${DW_IDE_CS_EXTRA_FILES})
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${file}
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>
+            COMMENT "Copying: ${file}"
+    )
+endforeach ()
+
+foreach (file ${DW_IDE_CS_EXTRA_FILES})
+    get_filename_component(file_name ${file} NAME)
+    list(APPEND ADDITIONAL_CLEAN_FILES ${file_name})
+endforeach ()
+
 
 
 # strip leading path from absolute to make relative and then add to ADDITIONAL_CLEAN_FILES

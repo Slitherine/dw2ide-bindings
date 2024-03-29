@@ -1,0 +1,14 @@
+[*]
+charset = utf-8
+end_of_line = crlf
+indent_size = 4
+indent_style = space
+insert_final_newline = false
+max_line_length = 120
+tab_width = 4
+
+[{*.c,*.c++,*.c++m,*.cc,*.ccm,*.cp,*.cpp,*.cppm,*.cu,*.cuh,*.cxx,*.cxxm,*.h,*.h++,*.hh,*.hp,*.hpp,*.hxx,*.i,*.icc,*.ii,*.inl,*.ino,*.ipp,*.ixx,*.m,*.mm,*.mxx,*.pch,*.tcc,*.tpp}]
+ij_any_align_multiline_parameters_in_calls = false
+ij_c_function_call_arguments_align_multiline = false
+ij_c_function_call_arguments_align_multiline_pars = false
+ij_c_method_call_arguments_align_multiline = false
